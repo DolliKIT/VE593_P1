@@ -156,10 +156,12 @@ def UCS(valuedGraph, sInit):
     toVisit = queue.PriorityQueue()
     visited = []
     sInit = (1, sInit)
-    toVisit.put((0, sInit))
+    countQ = 0 # counter for equal prio
+    toVisit.put((0, countQ, sInit))
+    countQ += 1
 
     while toVisit.empty() == 0:
-        current = toVisit.get()[1]
+        current = toVisit.get()[2]
         pathCost = pathCost + current[0]
         #genSucs = gen_sucs(valuedGraph, current)
         SucsCur = [it for it in valuedGraph.successors(current[1])]
@@ -169,7 +171,8 @@ def UCS(valuedGraph, sInit):
                 return path, pathCost
             curCost = pathCost + iter[0]
             if iter not in visited:
-                toVisit.put((curCost, iter))
+                toVisit.put((curCost, countQ, iter))
+                countQ += 1
                 visited.append(iter)
                 path.append(current[1])
                 if len(path) > 1:
