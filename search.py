@@ -5,6 +5,7 @@ import heapq
 import math
 import queue
 import timeit
+import random
 
 from testgraphs import SimpleValuedGraph
 from testgraphs import SimpleGraph
@@ -12,9 +13,9 @@ from testgraphs import SimpleGraph
 
 
 class Node:
-    def __init__(self, state, suc):
-        self.state = state
-        self.suc = suc
+    def __init__(self, element, parent):
+        self.element = element
+        self.parent = parent
 
 # BFS
 def BFS(Graph, initialState):
@@ -24,7 +25,7 @@ def BFS(Graph, initialState):
 
     toVisit = queue.Queue()
     init = Node(initialState, initialState)
-    finished = [init.state]
+    finished = [init.element]
     for i in Graph.successors(initialState):
         it = Node(i,init)
         toVisit.put(it)
@@ -33,24 +34,24 @@ def BFS(Graph, initialState):
     cost = 0
     while not toVisit.empty():
         visitIt = toVisit.get()
-        if visitIt.state not in finished:
-            finished.append(visitIt.state)
-        if Graph.isGoal(visitIt.state):
-            while visitIt.state != initialState:
-                path = [visitIt.state] + path
-                visitIt = visitIt.suc
+        if visitIt.element not in finished:
+            finished.append(visitIt.element)
+        if Graph.isGoal(visitIt.element):
+            while visitIt.element != initialState:
+                path = [visitIt.element] + path
+                visitIt = visitIt.parent
                 cost += 1
             return ([initialState] + path, cost)
         else:
-            for i in Graph.successors(visitIt.state):
+            for i in Graph.successors(visitIt.element):
                 if i not in finished:
                     it = Node(i, visitIt)
                     toVisit.put(it)
 """
         it = len(finished)
         goThrough = finished[it - 1]
-        while goThrough.state != initialState:
-            path = [goThrough.state] + path
+        while goThrough.element != initialState:
+            path = [goThrough.element] + path
             goThrough = goThrough.suc
             cost += 1
         return ([initialState] + path, cost)
@@ -64,7 +65,7 @@ def DFS(Graph, initialState):
 
     toVisit = queue.LifoQueue()
     init = Node(initialState,initialState)
-    finished = [init.state]
+    finished = [init.element]
     for i in Graph.successors(initialState):
         it = Node(i,init)
         toVisit.put(it)
@@ -73,16 +74,16 @@ def DFS(Graph, initialState):
     cost = 0
     while not toVisit.empty():
         visitIt = toVisit.get()
-        if Graph.isGoal(visitIt.state):
-            while visitIt.state != initialState:
-                path = [visitIt.state] + path
-                visitIt = visitIt.suc
+        if Graph.isGoal(visitIt.element):
+            while visitIt.element != initialState:
+                path = [visitIt.element] + path
+                visitIt = visitIt.parent
                 cost += 1
             return ([initialState] + path, cost)
         else:
-            if visitIt.state not in finished:
-                finished.append(visitIt.state)
-                for i in Graph.successors(visitIt.state):
+            if visitIt.element not in finished:
+                finished.append(visitIt.element)
+                for i in Graph.successors(visitIt.element):
                     if i not in finished:
                         it = Node(i, visitIt)
                         toVisit.put(it)
@@ -97,12 +98,12 @@ def DLS(Graph, initialState, depthLimit):
     init = Node(initialState, initialState)
     (finished, found) = DLS_rec(Graph, init, depthLimit, finished, found)
     if found == True:
-        # path finding by successors
+        # path finding by parents
         it = len(finished)
         goThrough = finished[it-1]
-        while goThrough.state != initialState:
-            path = [goThrough.state] + path
-            goThrough = goThrough.suc
+        while goThrough.element != initialState:
+            path = [goThrough.element] + path
+            goThrough = goThrough.parent
             cost += 1
         return ([initialState] + path, cost)
     else:
@@ -114,7 +115,7 @@ def DLS_rec(Graph, cur, depthLimit, finished, found):
     if found == True:
         return (finished, True)
     else:
-        if Graph.isGoal(cur.state):
+        if Graph.isGoal(cur.element):
             finished.append(cur)
             found = True
         else:
@@ -122,8 +123,8 @@ def DLS_rec(Graph, cur, depthLimit, finished, found):
                 finished.append(cur)
                 if depthLimit > 0:
                     depthLimit -= 1
-                    for suc in Graph.successors(cur.state):
-                        if suc not in [c.state for c in finished]:
+                    for suc in Graph.successors(cur.element):
+                        if suc not in [c.element for c in finished]:
                             sucNode = Node(suc,cur)
                             (path, found) = DLS_rec(Graph, sucNode, depthLimit, finished, found)
 
@@ -154,89 +155,98 @@ def UCS(valuedGraph, sInit):
     path = []
     pathCost = 0
     toVisit = queue.PriorityQueue()
-    visited = []
-    sInit = (1, sInit)
+    tupleInit = (0, sInit)
+    nodeInit = Node(tupleInit,Node(0,tupleInit))
+    visited = [nodeInit]
     countQ = 0 # counter for equal prio
-    toVisit.put((0, countQ, sInit))
+    toVisit.put((0, countQ, nodeInit))
     countQ += 1
 
     while toVisit.empty() == 0:
         current = toVisit.get()[2]
-        pathCost = pathCost + current[0]
-        #genSucs = gen_sucs(valuedGraph, current)
-        SucsCur = [it for it in valuedGraph.successors(current[1])]
+        pathCost = pathCost + current.element[0]
+        SucsCur = [it for it in valuedGraph.successors(current.element[1])]
         for iter in SucsCur:
-            if valuedGraph.isGoal(iter[1]):
-                path.append(iter[1])
-                return path, pathCost
+            nodeIter = Node(iter, current)
+            if valuedGraph.isGoal(nodeIter.element[1]):
+                # path finding by parents
+                visited.append(nodeIter)
+                length = visited.index(nodeIter)
+                goThrough = visited[length]
+                cost = 0
+                while goThrough.element[1] != sInit:
+                    path = [goThrough.element[1]] + path
+                    cost += goThrough.element[0]
+                    goThrough = goThrough.parent
+                return ([sInit] + path, cost)
+
             curCost = pathCost + iter[0]
             if iter not in visited:
-                toVisit.put((curCost, countQ, iter))
+                iterNode = Node(iter, current)
+                toVisit.put((curCost, countQ, iterNode))
                 countQ += 1
-                visited.append(iter)
-                path.append(current[1])
-                if len(path) > 1:
-                    if path[-2] == current[1]:
-                        del path[-1]
-        visited.append(current)
+                visited.append(iterNode)
 
     return path, pathCost
-
-
-class PriorityQueue:
-    def __init__(self):
-        self.elements = []
-    def putNode(self, node, priority):
-        #print('priority:', priority, 'node:', node)
-        heapq.heappush(self.elements, (priority, node))
-    def popNode(self):
-        return heapq.heappop(self.elements)[1]
-    def nodesExist(self):
-        return len(self.elements) != 0
 
 
 
 def A_star(valuedGraph, sInit, heuristic):
     path = []
     pathCost = 0
-    toVisit = PriorityQueue()
+    toVisit = queue.PriorityQueue()
+    toVisitDocu = []
+    tupleInit = (0, sInit)
+    nodeInit = Node(tupleInit, Node(0, tupleInit))
     visited = []
-    sInit = (0, sInit)
-    toVisit.putNode(sInit, 0)
+    countQ = 0  # counter for equal prio
+    toVisit.put((0, countQ, nodeInit))
+    toVisitDocu.append(nodeInit)
+    countQ += 1
 
-    while toVisit.nodesExist() != 0:
-        current = toVisit.popNode()
-        pathCost = pathCost + current[0]
+    while toVisit.empty() == 0:
+        current = toVisit.get()[2]
+        toVisitDocu.remove(current)
+        visited.append(current)
+        pathCost = 0
+        #pathCost = pathCost + current.element[0]
+        SucsCur = [it for it in valuedGraph.successors(current.element[1])]
+        for iter in SucsCur:
+            nodeIter = Node(iter, current)
+            if valuedGraph.isGoal(nodeIter.element[1]):
+                # path finding by parents
+                visited.append(nodeIter)
+                length = visited.index(nodeIter)
+                goThrough = visited[length]
+                while goThrough.element[1] != sInit:
+                    path = [goThrough.element[1]] + path
+                    pathCost += goThrough.element[0]
+                    goThrough = goThrough.parent
+                return ([sInit] + path, pathCost)
 
-        if valuedGraph.isGoal(current[1]):
-            path.append(current[1])
-            return path, pathCost
-        else:
-            genSucs = gen_sucs(valuedGraph, current)
-            for iter in genSucs:
-                curCost = pathCost + iter[0]
-                if (iter not in visited or curCost < pathCost):
-                    prio = curCost + heuristic(iter[1])
-                    toVisit.putNode(iter, prio)
-                    visited.append(iter)
-                    path.append(current[1])
-                    if len(path) > 1:
-                        if path[-2] == current[1]:
-                            del path[-1]
-            #visited.append(current)
+            curCost = pathCost + iter[0]
+            if iter not in visited:
+                iterNode = Node(iter, current)
+                prio = curCost + heuristic(iter[1])
+                print(heuristic(iter[1]))
+                insert = (prio, countQ, iterNode)
+                if insert[2] not in toVisitDocu:
+                    toVisit.put(insert)
+                    toVisitDocu.append(insert[2])
+                    countQ += 1 ## overflow possible
 
     return path, pathCost
 
 
 NUM_STATES = 5
 
-class NodeM:
+class NodeT:
     def __init__(self, state, sucs, Q, N, parent, reward):
-        self.state = state
+        self.state = state # State(value, blank position)
         self.sucs = sucs # tuple (cost, successor)
         self.Q = Q
         self.N = N
-        self.parents = parent
+        self.parent = parent
         self.reward = reward
 
     def add_suc(self, sucState):
@@ -247,22 +257,65 @@ class NodeM:
 
 
 
-"""
-def gen_nodeGraph(sourceGraph):
-    nodeGraph = []
-    for i in range(NUM_STATES): # all nodes available
-        node = Node(i, sourceGraph.successors(i), 0, 0, [], 0)
-        nodeGraph.append(node)
-    return nodeGraph
-
 def MCTS(ValuedGraph, state, budget):
-    graph = gen_nodeGraph(ValuedGraph)
+    initNodeState = NodeT(state, [], 0, 0, [], 0)
+    treeList = []
     for iter in range(int(budget)):
-        #leaf = treePolicy(state)
-        #reward = rolloutPolicy(leaf.state)
-        #backUp(lea, reward)
-    #return bestChild(state, reward)
+        leaf = treePolicy(ValuedGraph, initNodeState)
+        reward = rolloutPolicy(ValuedGraph, leaf)
+        #backUp(ValuedGraph, leaf, reward)
+    return bestChild(state) # reward
 
-def treePolicy(node):
-"""
+def treePolicy(ValuedGraph, nodeT):
+    while not ValuedGraph.isGoal(suc[1]) and len(ValuedGraph.successors(suc[1])) != 0:
+        if len(nodeT.sucs) == 0:
+            return expand(ValuedGraph, nodeT)
+        else:
+            suc = bestChild(ValuedGraph, nodeT)
+    return suc
 
+
+def bestChild(graph, nodeT):
+    c = 1/math.sqrt(2)
+    sucsCost = [0]*len(nodeT.sucs)
+    if nodeT.N != 0:
+        sucsCost = [(nodeT.Q / nodeT.N + c * math.sqrt(2*math.log(i[1].N/nodeT.N))) for i in nodeT.sucs]
+    else:
+        i = 0
+        for itSuc in nodeT.sucs:
+            if itSuc[1].N == 0:
+                sucsCost[i] = 99999
+            else:
+                sucsCost[i] = (c * math.sqrt(2 * math.log(itSuc.N / nodeT.N)))
+            i += 1
+    iSuc = sucsCost.index(max(sucsCost))
+    suc = graph.successors(nodeT.state)[iSuc]
+    return suc # tuple (cost, state)
+
+def expand(ValuedGraph, nodeT):
+    succs = [i for i in ValuedGraph.successors(nodeT.state) if i not in nodeT.sucs]
+    toExpand = succs[0] # choose first element
+    toExpandNode = NodeT(toExpand[1],[],0,0,nodeT,0)
+    nodeT.sucs.append((toExpand[0], toExpandNode))
+    return toExpand # (cost, state)
+
+def rolloutPolicy(ValuedGraph, leaf):
+    # TODO Node not necessary ...
+    nodeG = Node(leaf[1], 0)
+    cost = 0
+    num = 10
+    visited = []
+    while (not ValuedGraph.isGoal(nodeG.element)) and num != 0:
+        simSuc = random.randint(0,len(ValuedGraph.successors(nodeG.element))-1)
+        g = ValuedGraph.successors(nodeG.element)[simSuc]
+        if g not in visited:
+            nodeG = Node(g[1],nodeG)
+            cost += g[0]
+        visited.append(g)
+        num -= 1
+    if cost == 0:
+        reward = 1
+    else:
+        reward = 1 / cost
+
+def backUp(ValuedGraph, nodeT, reward):
