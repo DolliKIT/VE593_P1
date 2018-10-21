@@ -1,3 +1,4 @@
+
 # test it
 
 import timeit
@@ -8,12 +9,11 @@ from search import DLS
 from search import UCS
 from search import IDS
 from search import A_star
-from testgraphs import SimpleGraph
-from testgraphs import SimpleValuedGraph
 from testgraphs import State
 from testgraphs import nPuzzleGraph
 from testgraphs import nPuzzleGraphValued
 from search import MCTS
+
 
 def heuristicGraph(state):
     if state == 0: return 5
@@ -22,6 +22,24 @@ def heuristicGraph(state):
     if state == 3: return 2
     if state == 4: return 2
     if state == 5: return 0
+
+#graph = SimpleGraph()
+#graphValued = SimpleValuedGraph()
+"""
+print('---------Graph----------')
+
+print('BFS:', BFS(graph, 0))
+print('DFS:', DFS(graph, 0))
+print('IDS:', IDS(graph, 0))
+print('DLS:', DLS(graph, 0, 3))
+
+print('UCS:', UCS(graphValued, 0))
+
+print('Astar:', A_star(graphValued, 0, heuristicGraph))
+"""
+#MCTS(graphValued,0,100)
+
+
 
 def heuristicPuzzle(state):
     heuristic = 0
@@ -35,20 +53,6 @@ def heuristicPuzzle(state):
             heuristic += abs(x_value - x_goal) + abs(y_value - y_goal)
     return heuristic
 
-graph = SimpleGraph()
-graphValued = SimpleValuedGraph()
-"""
-print('---------Graph----------')
-
-print('BFS:', BFS(graph, 0))
-print('DFS:', DFS(graph, 0))
-print('IDS:', IDS(graph, 0))
-print('DLS:', DLS(graph, 0, 3))
-
-print('UCS:', UCS(graphValued, 0))
-print('Astar:', A_star(graphValued, 0, heuristicGraph))
-"""
-#MCTS(graphValued,0,100)
 
 def gen_state(n):
     N = n * n
@@ -69,9 +73,9 @@ DEPTHLIMIT = 100
 n = 3
 puzzle = nPuzzleGraph(n)
 puzzleValued = nPuzzleGraphValued(n)
-initState = [7, 2, 4, 5, 0, 6, 8, 3, 1]
+#initState = [7, 2, 4, 5, 0, 6, 8, 3, 1]
 #initState = [1,2,3,0,4,5,6,7,8]
-#initState = gen_state(n)
+initState = gen_state(n)
 initState = State(initState)
 puzzle.setInitialState(initState)
 
@@ -80,6 +84,11 @@ puzzleValued.setInitialState(initState)
 print('-------TestPuzzle--------')
 
 
+start = timeit.default_timer()
+print('A_star:',A_star(puzzleValued, puzzleValued.initialState, heuristicPuzzle))
+end = timeit.default_timer()
+print('Time: ', end - start)
+"""
 start = timeit.default_timer()
 print('IDS:',IDS(puzzle, puzzle.initialState))
 end = timeit.default_timer()
@@ -101,13 +110,40 @@ end = timeit.default_timer()
 print('Time: ', end - start)
 
 start = timeit.default_timer()
-print('A_star:',A_star(puzzleValued, puzzleValued.initialState, heuristicPuzzle))
-end = timeit.default_timer()
-print('Time: ', end - start)
-
-start = timeit.default_timer()
 print('UCS:',UCS(puzzleValued, puzzleValued.initialState))
 end = timeit.default_timer()
 print('Time: ', end - start)
+"""
 
+
+
+
+
+
+
+
+
+
+
+
+"""
+NUMITER = 5
+
+wrapped = wrapper(BFS, puzzle, puzzle.initialState)
+print('BFS:', timeit.timeit(wrapped, number=NUMITER) / NUMITER)
+
+wrapped = wrapper(DFS, puzzle, puzzle.initialState)
+print('DFS:', timeit.timeit(wrapped, number=NUMITER) / NUMITER)
+
+wrapped = wrapper(IDS, puzzle, puzzle.initialState)
+print('IDS:', timeit.timeit(wrapped, number=NUMITER) / NUMITER)
+
+
+wrapped = wrapper(DLS, puzzle, puzzle.initialState, DEPTHLIMIT)
+print('DLS:', timeit.timeit(wrapped, number=NUMITER) / NUMITER)
+
+
+wrapped = wrapper(UCS, graph, puzzle.initialState)
+print('UCS:', timeit.timeit(wrapped, number=NUMITER) / NUMITER)
+"""
 
