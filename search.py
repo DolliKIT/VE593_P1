@@ -228,7 +228,7 @@ def A_star(valuedGraph, sInit, heuristic):
             if iter not in visited:
                 iterNode = Node(iter, current)
                 prio = curCost + heuristic(iter[1])
-                print(heuristic(iter[1]))
+                #print(heuristic(iter[1]))
                 insert = (prio, countQ, iterNode)
                 if insert[2] not in toVisitDocu:
                     toVisit.put(insert)
@@ -319,3 +319,8 @@ def rolloutPolicy(ValuedGraph, leaf):
         reward = 1 / cost
 
 def backUp(ValuedGraph, nodeT, reward):
+    while nodeT.parent != 0:
+        nodeT.N += 1
+        nodeT.Q += reward
+        reward = -reward
+        nodeT = nodeT.parent
