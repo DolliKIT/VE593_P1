@@ -13,6 +13,8 @@ from testgraphs import State
 from testgraphs import nPuzzleGraph
 from testgraphs import nPuzzleGraphValued
 from search import MCTS
+from testgraphs import SimpleValuedGraph
+from testgraphs import SimpleGraph
 
 
 def heuristicGraph(state):
@@ -23,9 +25,9 @@ def heuristicGraph(state):
     if state == 4: return 2
     if state == 5: return 0
 
-#graph = SimpleGraph()
-#graphValued = SimpleValuedGraph()
-"""
+graph = SimpleGraph()
+graphValued = SimpleValuedGraph()
+
 print('---------Graph----------')
 
 print('BFS:', BFS(graph, 0))
@@ -36,7 +38,7 @@ print('DLS:', DLS(graph, 0, 3))
 print('UCS:', UCS(graphValued, 0))
 
 print('Astar:', A_star(graphValued, 0, heuristicGraph))
-"""
+
 #MCTS(graphValued,0,100)
 
 
@@ -69,6 +71,8 @@ def gen_state(n):
     return init
 
 
+inits = [[1, 5, 4, 7, 8, 6, 3, 0, 2], [7, 5, 1, 6, 2, 0, 3, 8, 4], [0, 4, 6, 3, 8, 5, 7, 2, 1], [1, 8, 7, 0, 5, 3, 4, 2, 6], [7, 8, 4, 2, 5, 1, 0, 3, 6]]
+
 DEPTHLIMIT = 100
 n = 3
 puzzle = nPuzzleGraph(n)
@@ -85,49 +89,69 @@ puzzleValued.setInitialState(initState)
 print('-------TestPuzzle--------')
 
 
-start = timeit.default_timer()
-print('A_star:',A_star(puzzleValued, puzzleValued.initialState, heuristicPuzzle))
-end = timeit.default_timer()
-print('Time: ', end - start)
+print('Size of Puzzle: n =', n)
+
+puzzle = nPuzzleGraph(n)
+puzzleValued = nPuzzleGraphValued(n)
+
+for i in range(5):
+
+    print('Iteration', i)
+
+    initState = gen_state(n)
+    initState = State(initState)
+    puzzle.setInitialState(initState)
+    puzzleValued.setInitialState(initState)
+
+    start = timeit.default_timer()
+    print('A_star:',A_star(puzzleValued, puzzleValued.initialState, heuristicPuzzle))
+    end = timeit.default_timer()
+    print('Time: ', end - start)
+
+    start = timeit.default_timer()
+    print('UCS:',UCS(puzzleValued, puzzleValued.initialState))
+    end = timeit.default_timer()
+    print('Time: ', end - start)
+
+
+    start = timeit.default_timer()
+    print('BFS:', BFS(puzzle, puzzle.initialState))
+    end = timeit.default_timer()
+    print('Time: ', end - start)
+
+    """
+    start = timeit.default_timer()
+    print('IDS:',IDS(puzzle, puzzle.initialState))
+    end = timeit.default_timer()
+    print('Time: ', end - start)
+    
+    start = timeit.default_timer()
+    print('DFS:',DFS(puzzle, puzzle.initialState))
+    end = timeit.default_timer()
+    print('Time: ', end - start)
+    
+    start = timeit.default_timer()
+    print('DLS:',DLS(puzzle, puzzle.initialState, DEPTHLIMIT))
+    end = timeit.default_timer()
+    print('Time: ', end - start)
+    """
+
+
+
+
+
+
+
+
+initState = [1,2,3,0,4,5,6,7,8]
+
+print('Test:', initState)  # i instead of initState
+
+puzzle = nPuzzleGraph(n)
+initState = State(initState)
+puzzle.setInitialState(initState)
 """
-start = timeit.default_timer()
-print('IDS:',IDS(puzzle, puzzle.initialState))
-end = timeit.default_timer()
-print('Time: ', end - start)
 
-start = timeit.default_timer()
-print('BFS:', BFS(puzzle, puzzle.initialState))
-end = timeit.default_timer()
-print('Time: ', end - start)
-
-start = timeit.default_timer()
-print('DFS:',DFS(puzzle, puzzle.initialState))
-end = timeit.default_timer()
-print('Time: ', end - start)
-
-start = timeit.default_timer()
-print('DLS:',DLS(puzzle, puzzle.initialState, DEPTHLIMIT))
-end = timeit.default_timer()
-print('Time: ', end - start)
-"""
-start = timeit.default_timer()
-print('UCS:',UCS(puzzleValued, puzzleValued.initialState))
-end = timeit.default_timer()
-print('Time: ', end - start)
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""
 NUMITER = 5
 
 wrapped = wrapper(BFS, puzzle, puzzle.initialState)

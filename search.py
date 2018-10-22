@@ -96,7 +96,8 @@ def DFS(Graph, initialState):
 
 # DLS
 def DLS(Graph, initialState, depthLimit):
-    finished = [] # here set as well ???
+    finished = {1} # here set as well ???
+    finished.pop()
     path = []
     cost = 0
     found = False
@@ -105,7 +106,7 @@ def DLS(Graph, initialState, depthLimit):
     if found == True:
         # path finding by parents
         it = len(finished)
-        goThrough = finished[it-1]
+        goThrough = list(finished)[it-1]
         while goThrough.element != initialState:
             path = [goThrough.element] + path
             goThrough = goThrough.parent
@@ -116,16 +117,16 @@ def DLS(Graph, initialState, depthLimit):
         return ([],0)
 
 def DLS_rec(Graph, cur, depthLimit, finished, found):
-
+    #print('Depthlimit:',depthLimit)
     if found == True:
         return (finished, True)
     else:
         if Graph.isGoal(cur.element):
-            finished.append(cur)
+            finished.add(cur)
             found = True
         else:
             if cur not in finished:
-                finished.append(cur)
+                finished.add(cur)
                 if depthLimit > 0:
                     depthLimit -= 1
                     for suc in Graph.successors(cur.element):
@@ -144,6 +145,7 @@ def IDS(Graph, initialState):
         (path, cost) = DLS(Graph, initialState, depth)
         end = timeit.default_timer()
         if len(path) != 0:
+            #print('Depth:', depth)
             return (path, cost)
 
 
@@ -177,12 +179,12 @@ def UCS(valuedGraph, sInit):
 
             if valuedGraph.isGoal(nodeIter.element[1]):
                 # path finding by parents
-                goThrough = current
+                goThrough = nodeIter
                 while goThrough.element[1] != sInit:
                     path = [goThrough.element[1]] + path
                     pathCost += goThrough.element[0]
                     goThrough = goThrough.parent
-                return ([sInit] + path + [nodeIter.element[1]], pathCost)
+                return ([sInit] + path, pathCost)
 
             if iter not in visited or nodeIter.costSoFar < curCost:  # or cost is better
                 prio = nodeIter.costSoFar
@@ -221,25 +223,22 @@ def A_star(valuedGraph, sInit, heuristic):
 
             if valuedGraph.isGoal(nodeIter.element[1]):
                 # path finding by parents
-                goThrough = current
+                goThrough = nodeIter
                 while goThrough.element[1] != sInit:
                     path = [goThrough.element[1]] + path
                     pathCost += goThrough.element[0]
                     goThrough = goThrough.parent
-                return ([sInit] + path + [nodeIter.element[1]], pathCost)
+                return ([sInit] + path, pathCost)
 
             if iter not in visited or nodeIter.costSoFar < curCost: # or cost is better
                 prio = nodeIter.costSoFar + heuristic(iter[1])
                 insert = (prio, countQ, nodeIter)
                 toAnalyse.put(insert)
-                visited.add(nodeIter.element)
+                #visited.add(nodeIter.element)
                 countQ += 1
-            curCost = current.costSoFar
+            curCost = nodeIter.costSoFar
 
     return path, pathCost
-
-
-
 
 
 
@@ -262,37 +261,42 @@ class NodeT:
 
 def MCTS(ValuedGraph, state, budget):
     initNodeState = NodeT(state, [], 0, 0, [], 0)
-    treeList = []
+    #treeList = []
     for iter in range(int(budget)):
         leaf = treePolicy(ValuedGraph, initNodeState)
         reward = rolloutPolicy(ValuedGraph, leaf)
-        #backUp(ValuedGraph, leaf, reward)
-    return bestChild(state) # reward
+        backUp(ValuedGraph, leaf[1], reward)
+    return bestChild(ValuedGraph, state) # reward
 
 def treePolicy(ValuedGraph, nodeT):
-    while not ValuedGraph.isGoal(suc[1]) and len(ValuedGraph.successors(suc[1])) != 0:
+    num = 0
+    cur = (0, nodeT.state)
+    while not ValuedGraph.isGoal(cur[1]) and num < 1000: #len(ValuedGraph.successors(suc[1])) != 0
         if len(nodeT.sucs) == 0:
             return expand(ValuedGraph, nodeT)
         else:
-            suc = bestChild(ValuedGraph, nodeT)
-    return suc
+            cur = bestChild(ValuedGraph, nodeT)
+        num += 1
+    curNode = NodeT(cur[1],[],0,0,0,0)
+    return (cur[0],curNode)
 
 
 def bestChild(graph, nodeT):
     c = 1/math.sqrt(2)
     sucsCost = [0]*len(nodeT.sucs)
-    if nodeT.N != 0:
-        sucsCost = [(nodeT.Q / nodeT.N + c * math.sqrt(2*math.log(i[1].N/nodeT.N))) for i in nodeT.sucs]
-    else:
-        i = 0
-        for itSuc in nodeT.sucs:
-            if itSuc[1].N == 0:
-                sucsCost[i] = 99999
-            else:
-                sucsCost[i] = (c * math.sqrt(2 * math.log(itSuc.N / nodeT.N)))
-            i += 1
-    iSuc = sucsCost.index(max(sucsCost))
-    suc = graph.successors(nodeT.state)[iSuc]
+    i = 0
+    for nC in nodeT.sucs:
+        if nodeT.N != 0:
+            sucsCost[i] = [(nodeT.Q / nodeT.N + c * math.sqrt(2*math.log(nC[1].N / nodeT.N))) for i in nodeT.sucs]
+        else:
+            for itSuc in nodeT.sucs:
+                if itSuc[1].N == 0:
+                    sucsCost[i] = 99999 #never visited -> first priority
+                else:
+                    sucsCost[i] = (c * math.sqrt(2 * math.log(itSuc.N / nodeT.N)))
+                i += 1
+        iSuc = sucsCost.index(max(sucsCost))
+        suc = graph.successors(nodeT.state)[iSuc]
     return suc # tuple (cost, state)
 
 def expand(ValuedGraph, nodeT):
@@ -300,13 +304,13 @@ def expand(ValuedGraph, nodeT):
     toExpand = succs[0] # choose first element
     toExpandNode = NodeT(toExpand[1],[],0,0,nodeT,0)
     nodeT.sucs.append((toExpand[0], toExpandNode))
-    return toExpand # (cost, state)
+    expandNode = NodeT(toExpand[1],[],0,0,0,0)
+    return (toExpand[0], expandNode) # (cost, state)
 
 def rolloutPolicy(ValuedGraph, leaf):
-    # TODO Node not necessary ...
     nodeG = Node(leaf[1], 0)
     cost = 0
-    num = 10
+    num = 1000
     visited = []
     while (not ValuedGraph.isGoal(nodeG.element)) and num != 0:
         simSuc = random.randint(0,len(ValuedGraph.successors(nodeG.element))-1)
@@ -321,9 +325,10 @@ def rolloutPolicy(ValuedGraph, leaf):
     else:
         reward = 1 / cost
 
+    return reward
+
 def backUp(ValuedGraph, nodeT, reward):
     while nodeT.parent != 0:
         nodeT.N += 1
         nodeT.Q += reward
-        reward = -reward
         nodeT = nodeT.parent

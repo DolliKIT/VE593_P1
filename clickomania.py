@@ -24,11 +24,19 @@ class Clickomania:
         self.M = M
         self.K = K
 
-    def isGoal(self, state):
+    def setNM(self, stateValue):
+        sizeN = len(stateValue)
+        sizeM = len(stateValue[0])
+        self.N = sizeN
+        self.M = sizeM
+
+
+    def isGoal(self, toConsider):
+        state = StateC(0, toConsider)
         if len(self.findBlocks(state)) == 0:
             return 1
         else:
-            0
+            return 0
 
     def generateInitState(self):
         values = []
@@ -59,26 +67,27 @@ class Clickomania:
                     tilesInBlock.append((n,m))
                     while not toVisit.empty():
                         (n, m) = toVisit.get()
-                        # look up
-                        if (n - 1 >= 0) and (state.value[n - 1][m] == tile.colour) and ((n - 1, m) not in tilesInBlock):
-                            block.append((n - 1, m))
-                            tilesInBlock.append((n - 1, m))
-                            toVisit.put((n-1,m))
-                        # look down
-                        if (n + 1 < self.N) and (state.value[n+1][m] == tile.colour) and ((n+1,m) not in tilesInBlock):
-                            block.append((n+1,m))
-                            tilesInBlock.append((n+1,m))
-                            toVisit.put((n+1,m))
-                        # look left
-                        if (m - 1 >= 0) and (state.value[n][m-1] == tile.colour) and ((n,m-1) not in tilesInBlock):
-                            block.append((n,m-1))
-                            tilesInBlock.append((n,m-1))
-                            toVisit.put((n,m-1))
-                        # look right
-                        if (m + 1 < self.M) and (state.value[n][m+1] == tile.colour) and ((n,m+1) not in tilesInBlock):
-                            block.append((n,m+1))
-                            tilesInBlock.append((n,m+1))
-                            toVisit.put((n,m+1))
+                        if n < self.N and m < self.M:
+                            # look up
+                            if (n - 1 >= 0) and (state.value[n - 1][m] == tile.colour) and ((n - 1, m) not in tilesInBlock):
+                                block.append((n - 1, m))
+                                tilesInBlock.append((n - 1, m))
+                                toVisit.put((n-1,m))
+                            # look down
+                            if (n + 1 < self.N) and (state.value[n+1][m] == tile.colour) and ((n+1,m) not in tilesInBlock):
+                                block.append((n+1,m))
+                                tilesInBlock.append((n+1,m))
+                                toVisit.put((n+1,m))
+                            # look left
+                            if (m - 1 >= 0) and (state.value[n][m-1] == tile.colour) and ((n,m-1) not in tilesInBlock):
+                                block.append((n,m-1))
+                                tilesInBlock.append((n,m-1))
+                                toVisit.put((n,m-1))
+                            # look right
+                            if (m + 1 < self.M) and (state.value[n][m+1] == tile.colour) and ((n,m+1) not in tilesInBlock):
+                                block.append((n,m+1))
+                                tilesInBlock.append((n,m+1))
+                                toVisit.put((n,m+1))
 
                     if len(block) > 1:
                         blocks.append(block) # block: list of tile tuples of a block
@@ -120,10 +129,12 @@ class Clickomania:
                 if state.value[i][j] == 0:
                     toFallDown.append((i,j))
         # len( [i for i in state.value[:][m] if i == 0 ])
+        toFallDown.sort(reverse=True)
         for fD in toFallDown:
             if fD[0] != self.N - 1: # highest row not necessary
-                for i in range(fD[0],self.N - 1):
-                    state.value[i][fD[1]] = state.value[i+1][fD[1]]
+                for n in range(fD[0],self.N - 1):
+                    state.value[n][fD[1]] = state.value[n+1][fD[1]]
+                state.value[self.N - 1][fD[1]] = 0
 
         for i in range(max(self.N, self.M)): # testing it iteratively
             # check if a row only consists of zeros
@@ -165,16 +176,13 @@ class Clickomania:
         return state
 
 
-    def successors(self, parState):
+    def successors(self, current):
+        parState = StateC(0, current)
         blocks = self.findBlocks(parState)
         succs = []
         toChange = self
-# TODO self is not changed here ... !!!!!!!!!!!!!!!
         for b in blocks:
             deletedBlocks = len(b)
-
-            copyList = copy.copy(parState.value)
-            copyList.append(999999999)
             #newState = parState.clone()
             #print('ParState before deleting:', parState.value)
 
@@ -184,9 +192,9 @@ class Clickomania:
             #print('ParState after deleting:', parState.value)
             newState =  toChange.fallDown(newState)
             score = (deletedBlocks - 1)**2
-            newState.score = score + parState.score # update score
+           # newState.score = score + parState.score # update score -> not correct when using A Star Search since tracking of score in A Star Search itself
 
-            succs.append(newState)
+            succs.append((score, newState.value))
 
         return succs
 
