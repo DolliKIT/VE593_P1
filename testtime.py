@@ -26,7 +26,7 @@ def heuristicPuzzle(state):
     return heuristic
 
 
-VARIANCE = 4
+VARIANCE = 6
 def gen_state(n):
     N = n * n
     init = list(range(1, N))
@@ -57,7 +57,7 @@ sumMCTS = 0
 
 nEnd = 11
 
-print('Complexity Measurements of Search Algorithms with N =', NumIterations, 'Iterations.')
+print('Computational Times of Search Algorithms with N =', NumIterations, 'Iterations.')
 
 for n in range(3,nEnd+1,2):
     print('Size of Puzzle: n =', n)

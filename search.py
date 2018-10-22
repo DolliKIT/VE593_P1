@@ -5,10 +5,6 @@ import queue
 import timeit
 import random
 
-from testgraphs import SimpleValuedGraph
-from testgraphs import SimpleGraph
-#from testing import heuristic
-
 
 class Node:
     def __init__(self, element, parent):

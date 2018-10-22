@@ -12,21 +12,17 @@ def A_star(valuedGraph, sInit, heuristic):
     pathCost = 0
     curCost = 0
     toAnalyse = queue.PriorityQueue()
-    #toAnalyseDocu = []
     tupleInit = (0, sInit)  # (cost, state)
     nodeInit = NodeV(tupleInit, NodeV(0, tupleInit, 0), 0)
     visitItem = tuple(nodeInit.element)
     visited = [visitItem] # list of visited Nodes, set much more efficient but elements must be mutable...
     countQ = 0  # counter for equal prio
     toAnalyse.put((0, countQ, nodeInit))
-    #toAnalyseDocu.append(nodeInit)
     countQ += 1
 
     while toAnalyse.empty() == 0:
         current = toAnalyse.get()[2]
         valuedGraph.setNM(current.element[1])
-        #print('N:',valuedGraph.N,', M:', valuedGraph.M)
-        #curCost += current.element[0]
         visited.append(current.element)
         SucsCur = [it for it in valuedGraph.successors(current.element[1])]
         for iter in SucsCur:
@@ -47,6 +43,6 @@ def A_star(valuedGraph, sInit, heuristic):
                 toAnalyse.put(insert)
                 visited.append(nodeIter.element)
                 countQ += 1
-            curCost = current.costSoFar
+            curCost = nodeIter.costSoFar
 
     return path, pathCost

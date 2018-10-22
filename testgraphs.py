@@ -115,6 +115,8 @@ class nPuzzleGraph:
         return state.value == self.endState
 
 
+
+# inherited class for usage in algorithms with valued successors
 class nPuzzleGraphValued(nPuzzleGraph):
 
     def successors(self, state):

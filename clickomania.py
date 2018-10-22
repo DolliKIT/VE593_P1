@@ -51,7 +51,6 @@ class Clickomania:
 
 
     def findBlocks(self, state):
-        # also possible with filter function but less convenient to read
         tilesInBlock = []
         blocks = []
         toVisit = queue.Queue()
@@ -95,8 +94,7 @@ class Clickomania:
 
 
     def deleteBlock(self, oldValue, delete):
-        numZero = 0 # array for zeros in a column
-        # setting colour to empty
+        # setting colour to 0
         newValue = []
         for i in range(self.N):
             newValue.append([])
@@ -110,14 +108,6 @@ class Clickomania:
                 if test not in delete:
                     newValue[i][j] = oldValue[i][j]
 
-        """
-        for toDel in delete:
-            n = toDel[0]
-            m = toDel[1]
-            #numZero += 1
-            # setting colour to empty
-            newValue[n][m] = 0
-        """
         return newValue
 
     def fallDown(self, state):
@@ -128,7 +118,7 @@ class Clickomania:
             for j in range(self.M):
                 if state.value[i][j] == 0:
                     toFallDown.append((i,j))
-        # len( [i for i in state.value[:][m] if i == 0 ])
+
         toFallDown.sort(reverse=True)
         for fD in toFallDown:
             if fD[0] != self.N - 1: # highest row not necessary
@@ -142,14 +132,11 @@ class Clickomania:
             m = 0
             while n < self.N:
                 while m < self.M:
-                    #print(state.value[0])
                     colours += state.value[n][m]
                     m += 1
                 if colours == 0:
                     self.N -= 1
-                    #print('N StateValue before Del:',state.value)
                     del state.value[n]
-                    #print('N StateValue after Del:', state.value)
                 else:
                     colours = 0
                 n += 1
@@ -164,10 +151,8 @@ class Clickomania:
                     n += 1
                 if colours == 0:
                     self.M -= 1
-                    #print('M StateValue before Del:', state.value)
                     for i in state.value:
                         del i[m]
-                    #print('M StateValue after Del:', state.value)
                 else:
                     colours = 0
                 m += 1
@@ -183,16 +168,10 @@ class Clickomania:
         toChange = self
         for b in blocks:
             deletedBlocks = len(b)
-            #newState = parState.clone()
-            #print('ParState before deleting:', parState.value)
-
             newValue = toChange.deleteBlock(parState.value, b)
             newState = StateC(parState.score, newValue)
-            #print('newState after deleting:', newState.value)
-            #print('ParState after deleting:', parState.value)
             newState =  toChange.fallDown(newState)
             score = (deletedBlocks - 1)**2
-           # newState.score = score + parState.score # update score -> not correct when using A Star Search since tracking of score in A Star Search itself
 
             succs.append((score, newState.value))
 
