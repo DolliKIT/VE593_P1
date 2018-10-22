@@ -69,7 +69,7 @@ sumUCS = 0
 
 #for i in range(NumIterations):
 
-#inits = [[1, 5, 4, 7, 8, 6, 3, 0, 2], [7, 5, 1, 6, 2, 0, 3, 8, 4], [0, 4, 6, 3, 8, 5, 7, 2, 1], [1, 8, 7, 0, 5, 3, 4, 2, 6], [7, 8, 4, 2, 5, 1, 0, 3, 6]]
+inits = [[1, 5, 4, 7, 8, 6, 3, 0, 2], [7, 5, 1, 6, 2, 0, 3, 8, 4], [0, 4, 6, 3, 8, 5, 7, 2, 1], [1, 8, 7, 0, 5, 3, 4, 2, 6], [7, 8, 4, 2, 5, 1, 0, 3, 6]]
 
 n = 4
 print('Complexity Measurements of Search Algorithms with N =', NumIterations, 'Iterations.')
@@ -83,30 +83,40 @@ print('Size of Puzzle: n =', n)
 for i in range(1,NumIterations):
     print('Iteration', i) # i instead of initState
 
-    #puzzle = nPuzzleGraph(n)
+    puzzle = nPuzzleGraph(n)
     puzzleValued = nPuzzleGraphValued(n)
     initState = gen_state(n)
     initState = State(initState)
-    #puzzle.setInitialState(initState)
+    puzzle.setInitialState(initState)
     puzzleValued.setInitialState(initState)
-
+    """
     start = timeit.default_timer()
     print('A_star:',A_star(puzzleValued, puzzleValued.initialState, heuristicPuzzle))
     end = timeit.default_timer()
     print('Time: ', end - start)
     sumAstar += end - start
 
+    
     start = timeit.default_timer()
     print('UCS:',UCS(puzzleValued, puzzleValued.initialState))
     end = timeit.default_timer()
     print('Time: ', end - start)
     sumUCS += end - start
+    """
+    start = timeit.default_timer()
+    print('BFS:', BFS(puzzle, puzzle.initialState))
+    end = timeit.default_timer()
+    print('Time: ', end - start)
+    sumBFS += end - start
 
-print('average measured time for Astar:', sumAstar / NumIterations)
-print('average measured time for UCS:', sumUCS / NumIterations)
+    start = timeit.default_timer()
+    DFS(puzzle, puzzle.initialState)
+    end = timeit.default_timer()
+    print('Time: ', end - start)
+    sumDFS += end - start
 
-"""
 
+    """
 for initState in inits:
 
     print('Iteration', initState)  # i instead of initState
@@ -114,7 +124,8 @@ for initState in inits:
     puzzle = nPuzzleGraph(n)
     initState = State(initState)
     puzzle.setInitialState(initState)
-
+    """
+    """
     start = timeit.default_timer()
     print('IDS:',IDS(puzzle, puzzle.initialState))
     end = timeit.default_timer()
@@ -126,21 +137,23 @@ for initState in inits:
     end = timeit.default_timer()
     print('Time: ', end - start)
     sumDLS += end - start
-
+    
     start = timeit.default_timer()
     print('BFS:', BFS(puzzle, puzzle.initialState))
     end = timeit.default_timer()
     print('Time: ', end - start)
     sumBFS += end - start
-
+    
     start = timeit.default_timer()
     print('DFS:',DFS(puzzle, puzzle.initialState))
     end = timeit.default_timer()
     print('Time: ', end - start)
     sumDFS += end - start
+"""
 
+print('average measured time for Astar:', sumAstar / NumIterations)
+print('average measured time for UCS:', sumUCS / NumIterations)
 print('average measured time for BFS:', sumBFS / NumIterations)
 print('average measured time for DFS:', sumDFS / NumIterations)
 print('average measured time for DLS:', sumDLS / NumIterations)
 print('average measured time for IDS:', sumIDS / NumIterations)
-"""
