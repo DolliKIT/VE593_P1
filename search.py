@@ -28,8 +28,9 @@ def BFS(Graph, initialState):
         return (initialState,0)
 
     toVisit = queue.Queue()
+
     init = Node(initialState, initialState)
-    finished = [init.element]
+    finished = {init.element}
     for i in Graph.successors(initialState):
         it = Node(i,init)
         toVisit.put(it)
@@ -39,7 +40,7 @@ def BFS(Graph, initialState):
     while not toVisit.empty():
         visitIt = toVisit.get()
         if visitIt.element not in finished:
-            finished.append(visitIt.element)
+            finished.add(visitIt.element)
         if Graph.isGoal(visitIt.element):
             while visitIt.element != initialState:
                 path = [visitIt.element] + path
@@ -69,7 +70,7 @@ def DFS(Graph, initialState):
 
     toVisit = queue.LifoQueue()
     init = Node(initialState,initialState)
-    finished = [init.element]
+    finished = {init.element}
     for i in Graph.successors(initialState):
         it = Node(i,init)
         toVisit.put(it)
@@ -86,7 +87,7 @@ def DFS(Graph, initialState):
             return ([initialState] + path, cost)
         else:
             if visitIt.element not in finished:
-                finished.append(visitIt.element)
+                finished.add(visitIt.element)
                 for i in Graph.successors(visitIt.element):
                     if i not in finished:
                         it = Node(i, visitIt)
@@ -95,7 +96,7 @@ def DFS(Graph, initialState):
 
 # DLS
 def DLS(Graph, initialState, depthLimit):
-    finished = []
+    finished = [] # here set as well ???
     path = []
     cost = 0
     found = False
@@ -159,54 +160,40 @@ def UCS(valuedGraph, sInit):
     toAnalyse = queue.PriorityQueue()
     # toAnalyseDocu = []
     tupleInit = (0, sInit)  # (cost, state)
-    nodeInit = Node(tupleInit, Node(0, tupleInit))
-    visited = [nodeInit.element]  # list of visited Nodes
+    nodeInit = NodeV(tupleInit, NodeV(0, tupleInit, 0), 0)
+    visited = {nodeInit.element}  # set of visited Nodes
     countQ = 0  # counter for equal prio
     toAnalyse.put((0, countQ, nodeInit))
     # toAnalyseDocu.append(nodeInit)
     countQ += 1
 
     while toAnalyse.empty() == 0:
-        path = []
-        pathCost = 0
-        curCost = 0
-        toAnalyse = queue.PriorityQueue()
-        # toAnalyseDocu = []
-        tupleInit = (0, sInit)  # (cost, state)
-        nodeInit = NodeV(tupleInit, NodeV(0, tupleInit, 0), 0)
-        visited = [nodeInit.element]  # list of visited Nodes
-        countQ = 0  # counter for equal prio
-        toAnalyse.put((0, countQ, nodeInit))
-        # toAnalyseDocu.append(nodeInit)
-        countQ += 1
+        current = toAnalyse.get()[2]
+        # curCost += current.element[0]
+        visited.add(current.element)
+        SucsCur = [it for it in valuedGraph.successors(current.element[1])]
+        for iter in SucsCur:
+            nodeIter = NodeV(iter, current, current.costSoFar + iter[0])
 
-        while toAnalyse.empty() == 0:
-            current = toAnalyse.get()[2]
-            #print('get Element:',current.element, 'with costSoFar:', current.costSoFar)
-            # curCost += current.element[0]
-            visited.append(current.element)
-            SucsCur = [it for it in valuedGraph.successors(current.element[1])]
-            for iter in SucsCur:
-                nodeIter = NodeV(iter, current, current.costSoFar + iter[0])
+            if valuedGraph.isGoal(nodeIter.element[1]):
+                # path finding by parents
+                goThrough = current
+                while goThrough.element[1] != sInit:
+                    path = [goThrough.element[1]] + path
+                    pathCost += goThrough.element[0]
+                    goThrough = goThrough.parent
+                return ([sInit] + path + [nodeIter.element[1]], pathCost)
 
-                if valuedGraph.isGoal(nodeIter.element[1]):
-                    # path finding by parents
-                    goThrough = current
-                    while goThrough.element[1] != sInit:
-                        path = [goThrough.element[1]] + path
-                        pathCost += goThrough.element[0]
-                        goThrough = goThrough.parent
-                    return ([sInit] + path + [nodeIter.element[1]], pathCost)
+            if iter not in visited or nodeIter.costSoFar < curCost:  # or cost is better
+                prio = nodeIter.costSoFar
+                insert = (prio, countQ, nodeIter)
+                toAnalyse.put(insert)
+                visited.add(nodeIter.element)
+                countQ += 1
+            curCost = current.costSoFar
 
-                if iter not in visited or nodeIter.costSoFar < curCost:  # or cost is better
-                    prio = nodeIter.costSoFar
-                    insert = (prio, countQ, nodeIter)
-                    toAnalyse.put(insert)
-                    visited.append(nodeIter.element)
-                    countQ += 1
-                curCost = current.costSoFar
+    return path, pathCost
 
-        return path, pathCost
 
 
 
@@ -218,7 +205,7 @@ def A_star(valuedGraph, sInit, heuristic):
     #toAnalyseDocu = []
     tupleInit = (0, sInit)  # (cost, state)
     nodeInit = NodeV(tupleInit, NodeV(0, tupleInit, 0), 0)
-    visited = [nodeInit.element] # list of visited Nodes
+    visited = {nodeInit.element} # set of visited Nodes
     countQ = 0  # counter for equal prio
     toAnalyse.put((0, countQ, nodeInit))
     #toAnalyseDocu.append(nodeInit)
@@ -227,7 +214,7 @@ def A_star(valuedGraph, sInit, heuristic):
     while toAnalyse.empty() == 0:
         current = toAnalyse.get()[2]
         #curCost += current.element[0]
-        visited.append(current.element)
+        visited.add(current.element)
         SucsCur = [it for it in valuedGraph.successors(current.element[1])]
         for iter in SucsCur:
             nodeIter = NodeV(iter, current, current.costSoFar + iter[0])
@@ -245,7 +232,7 @@ def A_star(valuedGraph, sInit, heuristic):
                 prio = nodeIter.costSoFar + heuristic(iter[1])
                 insert = (prio, countQ, nodeIter)
                 toAnalyse.put(insert)
-                visited.append(nodeIter.element)
+                visited.add(nodeIter.element)
                 countQ += 1
             curCost = current.costSoFar
 

@@ -75,7 +75,8 @@ puzzle = nPuzzleGraph(n)
 puzzleValued = nPuzzleGraphValued(n)
 #initState = [7, 2, 4, 5, 0, 6, 8, 3, 1]
 #initState = [1,2,3,0,4,5,6,7,8]
-initState = gen_state(n)
+initState = [7, 5, 1, 6, 2, 0, 3, 8, 4]
+#initState = gen_state(n)
 initState = State(initState)
 puzzle.setInitialState(initState)
 
@@ -108,12 +109,12 @@ start = timeit.default_timer()
 print('DLS:',DLS(puzzle, puzzle.initialState, DEPTHLIMIT))
 end = timeit.default_timer()
 print('Time: ', end - start)
-
+"""
 start = timeit.default_timer()
 print('UCS:',UCS(puzzleValued, puzzleValued.initialState))
 end = timeit.default_timer()
 print('Time: ', end - start)
-"""
+
 
 
 

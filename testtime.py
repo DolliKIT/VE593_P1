@@ -42,7 +42,8 @@ def gen_state(n):
 
 
 DEPTHLIMIT = 100
-n = 3
+"""
+n = 4
 puzzle = nPuzzleGraph(n)
 puzzleValued = nPuzzleGraphValued(n)
 initState = [7, 2, 4, 5, 0, 6, 8, 3, 1]
@@ -50,8 +51,8 @@ initState = [7, 2, 4, 5, 0, 6, 8, 3, 1]
 #initState = gen_state(n)
 initState = State(initState)
 puzzle.setInitialState(initState)
-
 puzzleValued.setInitialState(initState)
+"""
 
 print('-------MeasurePuzzle--------')
 
@@ -68,19 +69,25 @@ sumUCS = 0
 
 #for i in range(NumIterations):
 
-inits = [[1, 5, 4, 7, 8, 6, 3, 0, 2], [7, 5, 1, 6, 2, 0, 3, 8, 4], [0, 4, 6, 3, 8, 5, 7, 2, 1], [1, 8, 7, 0, 5, 3, 4, 2, 6], [7, 8, 4, 2, 5, 1, 0, 3, 6]]
+#inits = [[1, 5, 4, 7, 8, 6, 3, 0, 2], [7, 5, 1, 6, 2, 0, 3, 8, 4], [0, 4, 6, 3, 8, 5, 7, 2, 1], [1, 8, 7, 0, 5, 3, 4, 2, 6], [7, 8, 4, 2, 5, 1, 0, 3, 6]]
 
-for initState in inits:
+n = 4
+print('Complexity Measurements of Search Algorithms with N =', NumIterations, 'Iterations.')
+print('Size of Puzzle: n =', n)
 
-    print('Complexity Measurements of Search Algorithms with N =', NumIterations, 'Iterations.')
-    print('Size of Puzzle: n =', n)
+#initState = gen_state(n)
+# and i in range(1,NumIter)
 
-    print('Iteration', initState) # i instead of initState
 
-    #initState = gen_state(n)
-    print('InitState:', initState)
+#for initState in inits:
+for i in range(1,NumIterations):
+    print('Iteration', i) # i instead of initState
+
+    #puzzle = nPuzzleGraph(n)
+    puzzleValued = nPuzzleGraphValued(n)
+    initState = gen_state(n)
     initState = State(initState)
-    puzzle.setInitialState(initState)
+    #puzzle.setInitialState(initState)
     puzzleValued.setInitialState(initState)
 
     start = timeit.default_timer()
@@ -90,33 +97,29 @@ for initState in inits:
     sumAstar += end - start
 
     start = timeit.default_timer()
-    print('IDS:',IDS(puzzle, puzzle.initialState))
-    end = timeit.default_timer()
-    print('Time: ', end - start)
-    sumIDS += end - start
-
-    start = timeit.default_timer()
     print('UCS:',UCS(puzzleValued, puzzleValued.initialState))
     end = timeit.default_timer()
     print('Time: ', end - start)
     sumUCS += end - start
 
-print('average measured time for IDS:', sumBFS / NumIterations)
-print('average measured time for Astar:', sumBFS / NumIterations)
-print('average measured time for UCS:', sumBFS / NumIterations)
+print('average measured time for Astar:', sumAstar / NumIterations)
+print('average measured time for UCS:', sumUCS / NumIterations)
 
+"""
 
 for initState in inits:
-    print('Complexity Measurements of Search Algorithms with N =', NumIterations, 'Iterations.')
-    print('Size of Puzzle: n =', n)
 
     print('Iteration', initState)  # i instead of initState
 
-    # initState = gen_state(n)
-    print('InitState:', initState)
+    puzzle = nPuzzleGraph(n)
     initState = State(initState)
     puzzle.setInitialState(initState)
-    puzzleValued.setInitialState(initState)
+
+    start = timeit.default_timer()
+    print('IDS:',IDS(puzzle, puzzle.initialState))
+    end = timeit.default_timer()
+    print('Time: ', end - start)
+    sumIDS += end - start
 
     start = timeit.default_timer()
     print('DLS:',DLS(puzzle, puzzle.initialState, DEPTHLIMIT))
@@ -137,5 +140,7 @@ for initState in inits:
     sumDFS += end - start
 
 print('average measured time for BFS:', sumBFS / NumIterations)
-print('average measured time for DFS:', sumBFS / NumIterations)
-print('average measured time for DLS:', sumBFS / NumIterations)
+print('average measured time for DFS:', sumDFS / NumIterations)
+print('average measured time for DLS:', sumDLS / NumIterations)
+print('average measured time for IDS:', sumIDS / NumIterations)
+"""
